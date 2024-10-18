@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id                            String                  @id @default(uuid())
+  name                          String      
+  price                         Float         
+  merchantId                    String
+
+  merchant                      User                    @relation(references: [id], fields: [merchantId])
+  productTransaction            ProductTransaction[]
+
+  @@map("products")
+}
+
+model User {
+  id            String        @id @default(uuid())
+  name          String
+  email         String        @unique
+  password      String
+  role          Role          @default(CUSTOMER)
+
+  products      Product[]
+  transactions  Transaction[]
+
+  @@map("users")
+}
+
+enum Role {
+  MERCHANT
+  CUSTOMER
+}
+
+model Transaction {
+  id                            String        @id @default(uuid())
+  customerId                    String
+  
+  price_before_discount         Float
+  total_discount                Float?
+  shipping_cost                 Float?
+  total_price                   Float
+
+  promoTransaction              PromoTransaction[]      
+  customer                      User         @relation(references: [id], fields: [customerId])
+  productTransaction            ProductTransaction[]
+
+  @@map("transactions")
+}
+
+model Promo {
+  id                        String        @id @default(uuid())
+  name                      String
+  discount                  Int
+  minimun                   Float
+  affectOn                  DiscountType
+
+  promoTransaction          PromoTransaction[]
+
+  @@map("promos")
+}
+
+enum DiscountType {
+  SHIPPING
+  PRICE
+}
+
+model ProductTransaction {
+  id                  String        @id @default(uuid())
+  transactionId       String
+  productId           String
+  quantity            Int
+  sub_total           Float
+
+  transaction         Transaction   @relation(references: [id], fields: [transactionId])
+  product             Product       @relation(references: [id], fields: [productId])
+
+  @@map("product_transaction")
+}
+
+model PromoTransaction {
+  id                  String        @id @default(uuid())
+  transactionId       String
+  promoId             String
+
+  transaction         Transaction   @relation(references: [id], fields: [transactionId])
+  promo               Promo         @relation(references: [id], fields: [promoId])
+
+  @@map("promo_transaction")
+}
