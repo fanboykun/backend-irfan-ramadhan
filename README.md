@@ -70,3 +70,16 @@ http://localhost:5173
 - copy the token returned from the server
 - set Authorization header as Bearer Token, paste the token to the place
 - use other endpoints
+
+
+
+##### Run the build version (optional)
+```bash
+#building process
+npm run build
+
+#run the server
+node build/index.js
+
+#then, test the app
+```
