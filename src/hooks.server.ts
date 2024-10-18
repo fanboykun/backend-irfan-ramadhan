@@ -5,7 +5,7 @@ import { verifyToken } from '$lib/server/jwt';
 
 export const handle: Handle = async ({ event, resolve }) => {
     const { url, request, locals } = event;
-    const protectedRoutes = ['/api/transactions', '/api/customers', '/api/merchants'] 
+    const protectedRoutes = ['/api/transactions', '/api/products', '/api/customers', '/api/merchants'] 
     const isProtectedRoute = protectedRoutes.some(route => url.pathname.startsWith(route));
     // Check if the request is for the /transactions route
     if (isProtectedRoute) {

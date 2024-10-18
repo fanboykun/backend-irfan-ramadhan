@@ -38,6 +38,24 @@ export const findProductsByMerchant = async (merchantId: string) => {
     }
 }
 
+export const getProductPriceByIds = async (productIds: string[]) => {
+    try {
+        const products = await prisma.product.findMany({
+            where: {
+                id: { in: productIds },
+            },
+            select: {
+                id: true,
+                price: true,
+            },
+        })
+        return products
+    } catch (err) {
+        console.error(err)
+        return null
+    }
+}
+
 export const addProduct = async (data: Prisma.ProductUncheckedCreateInput) => {
     try {
         const product = await prisma.product.create({ data })

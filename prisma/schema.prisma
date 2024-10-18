@@ -90,13 +90,13 @@ enum DiscountType {
 
 model ProductTransaction {
   id                  String        @id @default(uuid())
-  transactionId       String
+  transactionId       String        
   productId           String
   quantity            Int
   sub_total           Float
 
-  transaction         Transaction   @relation(references: [id], fields: [transactionId])
-  product             Product       @relation(references: [id], fields: [productId])
+  transaction         Transaction   @relation(references: [id], fields: [transactionId], onDelete: Cascade)
+  product             Product       @relation(references: [id], fields: [productId], onDelete: Cascade)
 
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
@@ -109,8 +109,8 @@ model PromoTransaction {
   transactionId       String
   promoId             String
 
-  transaction         Transaction   @relation(references: [id], fields: [transactionId])
-  promo               Promo         @relation(references: [id], fields: [promoId])
+  transaction         Transaction   @relation(references: [id], fields: [transactionId], onDelete: Cascade)
+  promo               Promo         @relation(references: [id], fields: [promoId], onDelete: Cascade)
 
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt

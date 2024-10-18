@@ -1,5 +1,6 @@
 import prisma from "$lib/server/db"
 import type { Prisma } from "@prisma/client"
+import { v4 as uuid } from "uuid"
 
 export type CreateTransactionWithProductAndPromo =
     Prisma.TransactionCreateManyInput & { 
@@ -10,6 +11,8 @@ export type UpdateTransactionWithProductAndPromo =
     Prisma.TransactionUncheckedUpdateManyInput & { 
     productTransaction: Prisma.ProductTransactionCreateManyInput[] 
     promoTransaction: Prisma.PromoTransactionCreateManyInput[] }
+
+export type ProductInput = { id: string; quantity: number, price: number }[]
 
 export const getAllTransactions = async () => {
     try {
@@ -113,5 +116,89 @@ export const updateTransactionWithRelations = async (data: UpdateTransactionWith
         return null;
     }
 };
+
+export const calculatePrice = ( customerId: string,  data: ProductInput, transactionId?: string ) => {
+    const transaction: CreateTransactionWithProductAndPromo = {
+        id: transactionId ?? uuid(),
+        customerId,
+        total_price: 0,
+        total_discount: 0,
+        price_before_discount: 0,
+        shipping_cost: getRandomNumber(),
+        productTransaction: [],
+        promoTransaction: []
+    }
+
+      // Iterate over each product to calculate prices
+      for (const item of data) {
+        const productTransaction: Prisma.ProductTransactionCreateManyInput = {
+            transactionId: transaction.id as string,
+            productId: item.id,
+            quantity: item.quantity,
+            sub_total: Math.floor(Number(item.price) * Number(item.quantity))
+        } 
+        transaction.productTransaction.push(productTransaction)
+        const itemTotalPrice = item.price * item.quantity;
+        transaction.price_before_discount += itemTotalPrice; // Add to price before discount
+        transaction.total_price += itemTotalPrice; // Add to total price
+    }
+
+    return transaction
+
+}
+
+export const calculateTransactionWithDiscountAndShipping = async (transaction: CreateTransactionWithProductAndPromo ) => {
+    const [discount, shipping] = await Promise.all([
+        prisma.promo.findFirst({where: { affectOn: "PRICE" }}),
+        prisma.promo.findFirst({where: { affectOn: "SHIPPING" }}),
+    ])
+    if(!discount || !shipping) return transaction
+
+    if(transaction.total_price > discount.minimun) {
+        const amountOfDiscount = Math.floor(transaction.price_before_discount * discount.discount / 100)
+        transaction.total_discount = amountOfDiscount
+        transaction.total_price = Math.floor(transaction.total_price - amountOfDiscount)
+
+        const discount_promo_transaction: Prisma.PromoTransactionCreateManyInput = { 
+            id: uuid(), 
+            transactionId: transaction.id as string, 
+            promoId: discount.id as string 
+        }
+        transaction.promoTransaction.push(discount_promo_transaction) 
+    }
+
+    if(transaction.total_price > shipping.minimun) {
+        const fs_discount = Math.floor(transaction.shipping_cost as number * shipping.discount / 100)
+        // transaction.total_discount += fs_discount
+        transaction.shipping_cost = Math.floor(transaction.shipping_cost as number - fs_discount)
+
+        // transaction.total_price = Math.floor(transaction.total_price - fs_discount)
+
+        const fs_promo_transaction: Prisma.PromoTransactionCreateManyInput = { 
+            id: uuid(), 
+            transactionId: transaction.id as string, 
+            promoId: shipping.id as string 
+        }
+        transaction.promoTransaction.push(fs_promo_transaction) 
+    }
+
+    return transaction
+}
+
+const getRandomNumber = (min: number = 1000, max: number = 5000): number => {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+
+export const findTransaction = async (transactionId: string) => {
+    try {
+        const transaction = await prisma.transaction.findUnique({
+            where: { id: transactionId },
+        })
+        return transaction
+    } catch (err) {
+        console.error(err)
+        return null
+    }
+}
 
 
