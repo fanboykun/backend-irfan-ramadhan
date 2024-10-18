@@ -1,0 +1,547 @@
+{
+	"info": {
+		"_postman_id": "a201ca20-fcd5-4c7b-a312-52484d63abac",
+		"name": "backend-irfan-ramadhan",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "16098697"
+	},
+	"item": [
+		{
+			"name": "api/products",
+			"item": [
+				{
+					"name": "get all products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/products",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "show product",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"id\": \"14efad91-17da-41c4-b096-8d2e3a3b8437\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/products",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "api/auth",
+			"item": [
+				{
+					"name": "login-customer",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"customer@gmail.com\",\r\n  \"password\": \"password\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/auth/login",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login-merchant",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"customer@gmail.com\",\r\n  \"password\": \"password\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/auth/login",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "logout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"Frieda.Beatty-Swift43@yahoo.com\",\r\n  \"password\": \"password\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/auth/logout",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "api/customers",
+			"item": [
+				{
+					"name": "api/customers/transactions",
+					"item": [
+						{
+							"name": "get all customer transactions",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/customers/transactions",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"customers",
+										"transactions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show customer transaction",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": \"c97ad8c4-ee71-4961-bc21-4da8500d248a\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/customers/transactions",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"customers",
+										"transactions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "add customer transaction",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"products\": [\r\n    {\r\n      \"id\": \"fa638eae-0486-4488-bedf-7069e2ae3027\",\r\n      \"quantity\": 5 \r\n    }\r\n  ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/customers/transactions",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"customers",
+										"transactions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "edit customer transaction",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": \"d1f223d6-41fa-424f-8cbd-72bdd19e1d3a\",\r\n  \"products\": [\r\n    {\r\n      \"id\": \"fa638eae-0486-4488-bedf-7069e2ae3027\",\r\n      \"quantity\": 2\r\n    }\r\n  ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/customers/transactions",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"customers",
+										"transactions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete customer transaction",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": \"d1f223d6-41fa-424f-8cbd-72bdd19e1d3a\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/customers/transactions",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"customers",
+										"transactions"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "get customer info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/customers",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"customers"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "api/merchants",
+			"item": [
+				{
+					"name": "api/merchants/products",
+					"item": [
+						{
+							"name": "get all merchant products",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/merchants/products",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"merchants",
+										"products"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "add new merchant product",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"Es Teh Jumbo\",\r\n  \"price\": 10000\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/merchants/products",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"merchants",
+										"products"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "edit merchant product",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": \"ef680d30-7b40-42a8-bec3-709cdafaf015\",\r\n  \"name\": \"Es Teh Jumbo\",\r\n  \"price\": 5000\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/merchants/products",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"merchants",
+										"products"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show merchant product",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": \"ef680d30-7b40-42a8-bec3-709cdafaf015\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/merchants/products",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"merchants",
+										"products"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete merchant request",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": \"ef680d30-7b40-42a8-bec3-709cdafaf015\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/merchants/products",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"merchants",
+										"products"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "api/merchants/transactions",
+					"item": [
+						{
+							"name": "get all merchant transactions",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/merchants/transactions",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"merchants",
+										"transactions"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "api/merchants/customers",
+					"item": [
+						{
+							"name": "get all customers by merchant",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/merchants/customers",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"merchants",
+										"customers"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "get merchant info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/merchants",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"merchants"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJmZjUwOWQ4NC00NjZjLTQ0MmYtOWUyMy03NGZkMWRmMWYzMWUiLCJlbWFpbCI6ImN1c3RvbWVyQGdtYWlsLmNvbSIsInJvbGUiOiJDVVNUT01FUiIsImlhdCI6MTcyOTI4MjQ2MCwiZXhwIjoxNzMxODc0NDYwfQ.Mh0cGvw3iUKx9ompgU7XPm-GaTQxpAHgJf62Odujbss",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "url",
+			"value": "http://localhost:5173/api",
+			"type": "string"
+		}
+	]
+}
