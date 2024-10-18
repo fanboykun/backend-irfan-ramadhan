@@ -68,7 +68,7 @@ export const addTransaction = async (data: CreateTransactionWithProductAndPromo)
     }
 }
 
-export const updateTransactionWithRelations = async (data: UpdateTransactionWithProductAndPromo) => {
+export const updateTransactionWithRelationsOld = async (data: UpdateTransactionWithProductAndPromo) => {
     try {
         const transaction = await prisma.transaction.update({
             where: { id: data.id as string }, // Update based on the transaction ID
@@ -116,6 +116,191 @@ export const updateTransactionWithRelations = async (data: UpdateTransactionWith
         return null;
     }
 };
+
+export const updateTransactionWithRelationsOld2 = async (data: UpdateTransactionWithProductAndPromo) => {
+    try {
+        // Step 1: Fetch existing productTransaction records for the transaction
+        const existingProductTransactions = await prisma.productTransaction.findMany({
+            where: { transactionId: data.id as string }
+        });
+
+        // Step 2: Fetch existing promoTransaction records for the transaction
+        const existingPromoTransactions = await prisma.promoTransaction.findMany({
+            where: { transactionId: data.id as string }
+        });
+
+        // Step 3: Map productTransaction and promoTransaction IDs based on productId and promoId
+        const productTransactionMap = existingProductTransactions.reduce((map, productTransaction) => {
+            map[productTransaction.productId] = productTransaction.id;
+            return map;
+        }, {} as Record<string, string>);
+
+        const promoTransactionMap = existingPromoTransactions.reduce((map, promoTransaction) => {
+            map[promoTransaction.promoId] = promoTransaction.id;
+            return map;
+        }, {} as Record<string, string>);
+
+        // Step 4: Update transaction data
+        const transaction = await prisma.transaction.update({
+            where: { id: data.id as string }, // Update based on the transaction ID
+
+            data: {
+                customerId: data.customerId,
+                price_before_discount: data.price_before_discount,
+                total_discount: data.total_discount,
+                shipping_cost: data.shipping_cost,
+                total_price: data.total_price,
+
+                // Update productTransaction relations
+                productTransaction: {
+                    set: data.productTransaction.map(product => ({
+                        id: productTransactionMap[product.productId] || undefined, // Use existing productTransactionId if found
+                    })).filter(product => product.id), // Filter out undefined IDs to avoid errors
+
+                    connectOrCreate: data.productTransaction.map(product => ({
+                        where: { id: productTransactionMap[product.productId] || '' }, // Use productTransactionId if found
+                        create: {
+                            productId: product.productId as string,
+                            quantity: product.quantity as number,
+                            sub_total: product.sub_total as number,
+                        },
+                    }))
+                },
+
+                // Update promoTransaction relations
+                promoTransaction: {
+                    set: data.promoTransaction.map(promo => ({
+                        id: promoTransactionMap[promo.promoId] || undefined, // Use existing promoTransactionId if found
+                    })).filter(promo => promo.id), // Filter out undefined IDs to avoid errors
+
+                    connectOrCreate: data.promoTransaction.map(promo => ({
+                        where: { id: promoTransactionMap[promo.promoId] || '' }, // Use promoTransactionId if found
+                        create: {
+                            promoId: promo.promoId as string,
+                        },
+                    }))
+                }
+            }
+        });
+
+        return transaction;
+    } catch (err) {
+        console.error('Error updating transaction with relations:', err);
+        return null;
+    }
+};
+
+export const updateTransactionWithRelations = async (data: UpdateTransactionWithProductAndPromo) => {
+    const transactionId = data.id as string;
+
+    try {
+        // Begin a transaction
+        const result = await prisma.$transaction(async (tx) => {
+
+            // Step 1: Remove productTransactions that are not in the input
+            await tx.productTransaction.deleteMany({
+                where: {
+                    transactionId: transactionId,
+                    productId: { notIn: data.productTransaction.map(product => product.productId) }
+                }
+            });
+
+            // Step 2: Remove promoTransactions that are not in the input
+            await tx.promoTransaction.deleteMany({
+                where: {
+                    transactionId: transactionId,
+                    promoId: { notIn: data.promoTransaction.map(promo => promo.promoId) }
+                }
+            });
+
+            // Step 3: Bulk update or insert productTransaction using createMany and then handle updates
+            const existingProductTransactions = await tx.productTransaction.findMany({
+                where: {
+                    transactionId: transactionId,
+                    productId: { in: data.productTransaction.map(product => product.productId) }
+                }
+            });
+
+            const existingProductIds = existingProductTransactions.map(product => product.productId);
+
+            // Filter new product transactions to create
+            const newProductTransactions = data.productTransaction.filter(product => !existingProductIds.includes(product.productId));
+            if (newProductTransactions.length > 0) {
+                await tx.productTransaction.createMany({
+                    data: newProductTransactions.map(product => ({
+                        productId: product.productId,
+                        transactionId: transactionId,
+                        quantity: product.quantity,
+                        sub_total: product.sub_total
+                    }))
+                });
+            }
+
+            // Update existing product transactions in a bulk update operation
+            await Promise.all(
+                existingProductTransactions.map(existingProduct => {
+                    const inputProduct = data.productTransaction.find(p => p.productId === existingProduct.productId);
+                    if (inputProduct) {
+                        return tx.productTransaction.update({
+                            where: {
+                                id: existingProduct.id
+                            },
+                            data: {
+                                quantity: inputProduct.quantity,
+                                sub_total: inputProduct.sub_total
+                            }
+                        });
+                    }
+                })
+            );
+
+            // Step 4: Bulk update or insert promoTransaction using createMany and then handle updates
+            const existingPromoTransactions = await tx.promoTransaction.findMany({
+                where: {
+                    transactionId: transactionId,
+                    promoId: { in: data.promoTransaction.map(promo => promo.promoId) }
+                }
+            });
+
+            const existingPromoIds = existingPromoTransactions.map(promo => promo.promoId);
+
+            // Filter new promo transactions to create
+            const newPromoTransactions = data.promoTransaction.filter(promo => !existingPromoIds.includes(promo.promoId));
+            if (newPromoTransactions.length > 0) {
+                await tx.promoTransaction.createMany({
+                    data: newPromoTransactions.map(promo => ({
+                        promoId: promo.promoId,
+                        transactionId: transactionId,
+                    }))
+                });
+            }
+
+            // No need to update promoTransactions as they don't have additional fields to update
+
+            // Step 5: Finally, update the main transaction without handling relations in the same query
+            const updatedTransaction = await tx.transaction.update({
+                where: { id: transactionId },
+                data: {
+                    customerId: data.customerId,
+                    price_before_discount: data.price_before_discount,
+                    total_discount: data.total_discount,
+                    shipping_cost: data.shipping_cost,
+                    total_price: data.total_price
+                }
+            });
+
+            return updatedTransaction;
+        });
+        return result
+    } catch (err) {
+        console.error('Error updating transaction with relations:', err);
+        return null;
+    } finally {
+        await prisma.$disconnect();
+    }
+};
+
+
 
 export const calculatePrice = ( customerId: string,  data: ProductInput, transactionId?: string ) => {
     const transaction: CreateTransactionWithProductAndPromo = {
@@ -193,6 +378,23 @@ export const findTransaction = async (transactionId: string) => {
     try {
         const transaction = await prisma.transaction.findUnique({
             where: { id: transactionId },
+        })
+        return transaction
+    } catch (err) {
+        console.error(err)
+        return null
+    }
+}
+
+export const getTransactionWithProducts = async (transactionId: string) => {
+    try {
+        const transaction = await prisma.transaction.findUnique({
+            where: { id: transactionId },
+            include: {
+                productTransaction: true,
+                promoTransaction: true,
+                customer: { select: { name: true, email: true, id: true } }
+            }
         })
         return transaction
     } catch (err) {

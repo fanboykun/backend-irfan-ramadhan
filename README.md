@@ -1,38 +1,72 @@
-# create-svelte
+### Stack
+- Sveltekit
+- Typescript
+- Prisma 
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
+### Requirement
+- Nodejs v20.x
+- Mysql v8.x
 
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
-
+### Instalation
+- Clone the project :
 ```bash
-# create a new project in the current directory
-npm create svelte@latest
+# clone the project or fork the project
+git clone https://github.com/fanboykun/backend-irfan-ramadhan.git
 
-# create a new project in my-app
-npm create svelte@latest my-app
+# go to the project directory
+cd backend-irfan-ramadhan
 ```
 
-## Developing
+- Install Dependency: 
+```bash
+# install dependency with npm or pnpm
+npm install
+```
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+- Create database with name: 'db-backend-irfan-ramadhan' 
+    
+    or: 
+```bash
+# login to your mysql user as root
+mysql -u root
+
+# create the database
+CREATE DATABASE db-backend-irfan-ramadhan;
+``` 
+
+    or copy the db-backend-irfan-ramadhan.sql file and import it to your mysql client
+
+- Setting Prisma
+```bash
+# migrate the schema to your db
+npx prisma migrate dev
+
+# (optional) generate the client
+npx prisma generate
+
+# run the database seeder (required)
+npx prisma db seed
+```
+
+
+### Developing
 
 ```bash
 npm run dev
 
 # or start the server and open the app in a new browser tab
-npm run dev -- --open
+npm run dev --open
 ```
-
-## Building
-
-To create a production version of your app:
-
+open the development server in browser (optional)
 ```bash
-npm run build
+http://localhost:5173
 ```
 
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+### Testing API
+- Import Postman collection 'backend-irfan-ramadhan.json' file into postman
+- open api/auth folder
+- use the login-customer request to login as customer with credential: email: "customer@gmail.com" password: "password"
+- use the login-merchant request to login as merchant with credential: email: "merchant@gmail.com" password: "password"
+- copy the token returned from the server
+- set Authorization header as Bearer Token, paste the token to the place
+- use other endpoints

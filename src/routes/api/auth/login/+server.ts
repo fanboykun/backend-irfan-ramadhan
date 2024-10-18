@@ -14,7 +14,6 @@ export async function POST(event: RequestEvent) {
     try {
         const jsonData = await parseJson(event.request) // parse json
         if(jsonData.error) return json(response.setError(400, jsonData.error))  // check if the json is invalid
-
         const { email, password } = jsonData.data
 
         const [failed, error] = validateUserLogin(email, password)

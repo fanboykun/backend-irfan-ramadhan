@@ -1,4 +1,4 @@
-import { addProduct, deleteProduct, findProduct, findProductsByMerchant, updateProduct } from "$lib/server/module/product"
+import { addProduct, deleteProduct, findProduct, findProductByMerchant, findProductsByMerchant, updateProduct } from "$lib/server/module/product"
 import { findUserById } from "$lib/server/module/user.js"
 import { BaseResponse } from "$lib/server/response"
 import { validateAddProduct, validateEditProduct } from "$lib/validation/productValidation"
@@ -20,11 +20,14 @@ export async function GET( { locals } ) {
 export async function POST(event) {
     const response = new BaseResponse()
     try {
+        if(!event.locals.user) return json(response.setError(400, "no customer provided"))
+        const merchantId = event.locals.user.id as string
+
         const jsonData = await parseJson(event.request)
         if(jsonData.error) return json(response.setError(400, jsonData.error))
 
-        const { name, price, merchantId } = jsonData.data
-        const [failed, errors] = validateAddProduct(name, price, merchantId)
+        const { name, price } = jsonData.data
+        const [failed, errors] = validateAddProduct(name, price)
         if(failed) return json(response.setError(401, "Given data is invalid", errors))
 
         // check merchantId existance
@@ -45,13 +48,16 @@ export async function POST(event) {
 export const PATCH = async (event) => {
     const response = new BaseResponse()
     try {
+        if(!event.locals.user) return json(response.setError(400, "no customer provided"))
+        const merchantId = event.locals.user.id as string
+
         const { error, data } = await parseJson(event.request); // Using the parseJson function
         if (error) return json(response.setError(400, error))
     
-        const { id, name, price, merchantId } = data;
+        const { id, name, price } = data;
     
         // Validate the product data
-        const [failed, errors] = validateEditProduct(id, name, price, merchantId );
+        const [failed, errors] = validateEditProduct(id, name, price );
         if(failed) return json(response.setError(400, "Data is not valid", errors))
         
         const existingProduct = await findProduct(id)
@@ -69,9 +75,34 @@ export const PATCH = async (event) => {
 
 };
 
+export async function PUT(event) {
+    const response = new BaseResponse()
+    try {
+        if(!event.locals.user) return json(response.setError(400, "no customer provided"))
+        const userId = event.locals.user.id as string
+
+        const {data, error} = await parseJson(event.request)
+        if(error) return json(response.setError(400, error))
+
+        if(!data || typeof data.id !== "string") return json(response.setError(400, "Given data is invalid"))
+        const { id } = data
+
+        const product = await findProductByMerchant(id, userId)
+        if(!product) return json(response.setError(404, "product not found"))
+
+        return json(response.setSuccess(200, product))
+    } catch(err) {
+        console.error(err)
+        return json(response.setInternalError())
+    }
+}
+
 export async function DELETE(event) {
     const response = new BaseResponse()
     try {
+        if(!event.locals.user) return json(response.setError(400, "no customer provided"))
+        const merchantId = event.locals.user.id as string
+
         const { error, data } = await parseJson(event.request)
         if (error) return json(response.setError(400, error))
 
@@ -81,7 +112,7 @@ export async function DELETE(event) {
         const existingProduct = await findProduct(id)
         if(!existingProduct)  return json(response.setError(400, "Product does not exist"))
 
-        const isDeleteSuccess = await deleteProduct(id)
+        const isDeleteSuccess = await deleteProduct(id, merchantId)
         if(!isDeleteSuccess) return json(response.setInternalError())
 
         return json(response.setSuccess(200, {}))

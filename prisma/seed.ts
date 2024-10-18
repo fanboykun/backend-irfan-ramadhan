@@ -6,7 +6,7 @@ import { Argon2id } from 'oslo/password';
 const prisma = new PrismaClient()
 
 async function main() {
-    // return await resetDb()
+    await resetDb()
 
     const dummyUsers = await createDummyUsers()
     const users = await prisma.user.createMany({ data: dummyUsers })
@@ -69,14 +69,14 @@ const createDummyUsers = async () => {
     const customer: Prisma.UserCreateManyInput = {
         id: uuid(),
         name: faker.person.fullName(),
-        email: faker.internet.email(),
+        email: "customer@gmail.com",
         password,
         role: 'CUSTOMER',
     }
     const merchant: Prisma.UserCreateManyInput = {
         id: uuid(),
         name: faker.person.fullName(),
-        email: faker.internet.email(),
+        email: "merchant@gmail.com",
         password,
         role: 'MERCHANT',
     }

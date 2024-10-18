@@ -25,6 +25,21 @@ export const findProduct = async (productId: string) => {
     }
 }
 
+export const findProductByMerchant = async (productId: string, merchantId: string) => {
+    try {
+        const product = await prisma.product.findUnique({
+            where: { 
+                id: productId,
+                merchantId
+            },
+        })
+        return product
+    } catch (err) {
+        console.error(err)
+        return null
+    }
+}
+
 export const findProductsByMerchant = async (merchantId: string) => {
     try {
         const products = await prisma.product.findMany({
@@ -79,10 +94,10 @@ export const updateProduct = async (productId: string, data: Prisma.ProductUnche
     }
 }
 
-export const deleteProduct = async (productId: string) => {
+export const deleteProduct = async (productId: string, merchantId: string) => {
     try {
         await prisma.product.delete({ 
-            where: { id: productId },
+            where: { id: productId, merchantId },
         })
         return true
     } catch (err) {

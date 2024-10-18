@@ -1,6 +1,6 @@
 import { getAllCustomerTransaction } from "$lib/server/module/customer.js"
 import { getProductPriceByIds } from "$lib/server/module/product.js"
-import { addTransaction, calculatePrice, calculateTransactionWithDiscountAndShipping, deleteTransaction, findTransaction, updateTransactionWithRelations } from "$lib/server/module/transaction.js"
+import { addTransaction, calculatePrice, calculateTransactionWithDiscountAndShipping, deleteTransaction, findTransaction, getTransactionWithProducts, updateTransactionWithRelations } from "$lib/server/module/transaction.js"
 import { parseJson } from "$lib/server/request"
 import { BaseResponse } from "$lib/server/response"
 import { isProductArray, type ProductInput } from "$lib/validation/transactionValidation"
@@ -87,7 +87,7 @@ export async function PATCH(event) {
         }));
 
         // return new Response('ok')
-        const calulatedTransaction = calculatePrice(event.locals.user.id, productPriceMap, jsonData.data.id)
+        const calulatedTransaction = calculatePrice(event.locals.user.id, productPriceMap, productInput.id)
         const calculatedTransactionWithDiscountAndShipping = await calculateTransactionWithDiscountAndShipping(calulatedTransaction)
 
         const transaction = await updateTransactionWithRelations(calculatedTransactionWithDiscountAndShipping)
@@ -96,6 +96,27 @@ export async function PATCH(event) {
         return json(response.setSuccess(200, transaction))
 
     } catch(err){
+        console.error(err)
+        return json(response.setInternalError())
+    }
+}
+
+export async function PUT(event) {
+    const response = new BaseResponse()
+    try {
+        if(!event.locals.user) return json(response.setError(400, "no customer provided"))
+
+        const {data, error} = await parseJson(event.request)
+        if(error) return json(response.setError(400, error))
+
+        if(!data || typeof data.id !== "string") return json(response.setError(400, "Given data is invalid"))
+        const { id } = data
+
+        const transaction = await getTransactionWithProducts(id)
+        if(!transaction) return json(response.setError(400, "Given data is invalid"))
+
+        return json(response.setSuccess(200, transaction))
+    } catch(err) {
         console.error(err)
         return json(response.setInternalError())
     }

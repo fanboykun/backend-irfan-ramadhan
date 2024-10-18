@@ -1,7 +1,7 @@
 import { Validator, type validateType } from "ts-input-validator"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const validateAddProduct = (name: any, price: any, merchantId: any) => {
+export const validateAddProduct = (name: any, price: any) => {
     const toValidate: validateType[] = [
         {
             data: name, key: 'name', rules: ['required', 'string',]
@@ -9,15 +9,12 @@ export const validateAddProduct = (name: any, price: any, merchantId: any) => {
         {
             data: price, key: 'price', rules: ['required', 'number', 'min:1000']
         },
-        {
-            data: merchantId, key: 'merchantId', rules: ['required', 'string']
-        },
 
     ]
     return Validator.validate(toValidate)
 }
 
-export const validateEditProduct = (id: any, name: any, price: any, merchantId: any) => {
+export const validateEditProduct = (id: any, name: any, price: any) => {
     const toValidate: validateType[] = [
         {
             data: id, key: 'id', rules: ['required', 'string',]
@@ -27,9 +24,6 @@ export const validateEditProduct = (id: any, name: any, price: any, merchantId: 
         },
         {
             data: price, key: 'price', rules: ['required', 'number', 'min:1000']
-        },
-        {
-            data: merchantId, key: 'merchantId', rules: ['required', 'string']
         },
 
     ]
