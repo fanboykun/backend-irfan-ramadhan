@@ -1,6 +1,8 @@
 import prisma from "$lib/server/db"
 import type { Prisma } from "@prisma/client"
 
+export type MerchantProducts = Prisma.PromiseReturnType<typeof findProductsByMerchant>
+
 export const getAllProducts = async () => {
     try {
         const products = await prisma.product.findMany({

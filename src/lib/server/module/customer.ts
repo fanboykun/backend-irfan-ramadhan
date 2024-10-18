@@ -1,6 +1,8 @@
 import prisma from "$lib/server/db"
 import type { Prisma } from "@prisma/client"
 
+export type TransactionsWithProductsAndPromos = Prisma.PromiseReturnType<typeof getAllCustomerTransaction>
+
 export const getAllCustomerTransaction = async (customerId: string) => {
     try {
         const customerTransactions = await prisma.transaction.findMany({
