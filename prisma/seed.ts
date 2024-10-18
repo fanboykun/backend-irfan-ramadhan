@@ -6,6 +6,8 @@ import { Argon2id } from 'oslo/password';
 const prisma = new PrismaClient()
 
 async function main() {
+    // return await resetDb()
+
     const dummyUsers = await createDummyUsers()
     const users = await prisma.user.createMany({ data: dummyUsers })
     if(!users) return
@@ -18,9 +20,46 @@ async function main() {
     const promos = await prisma.promo.createMany({ data: dummyPromos })
     if(!promos) return
 
-    const dummyTransaction = createDummyTransaction(dummyProducts, dummyUsers, dummyPromos)
-    const transactions = await prisma.transaction.createMany({ data: dummyTransaction })
-    if(!transactions) return
+    const dummyTransaction: 
+        (Prisma.TransactionCreateManyInput & { 
+        productTransaction: Prisma.ProductTransactionCreateManyInput[] 
+        promoTransaction: Prisma.PromoTransactionCreateManyInput[] })[] 
+     = createDummyTransaction(dummyProducts, dummyUsers, dummyPromos)
+
+    for (const t of dummyTransaction) {
+        await prisma.transaction.create({
+            data: {
+                id: t.id,
+                customerId: t.customerId,
+                price_before_discount: t.price_before_discount,
+                total_discount: t.total_discount,
+                shipping_cost: t.shipping_cost,
+                total_price: t.total_price,
+                productTransaction: {
+                   create: t.productTransaction.map((product) => ({
+                        productId: product.productId as string,
+                        quantity: product.quantity as number,
+                        sub_total: product.sub_total as number,
+                   }))
+                },
+                promoTransaction: {
+                    create: t.promoTransaction.map(promo => ({
+                        promoId: promo.promoId as string,
+                    }))
+                }
+            }
+        })
+    }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const resetDb = async () => {
+    await prisma.productTransaction.deleteMany()
+    await prisma.promoTransaction.deleteMany()
+    await prisma.transaction.deleteMany()
+    await prisma.product.deleteMany()
+    await prisma.user.deleteMany()
+    await prisma.promo.deleteMany()
 }
 
 const createDummyUsers = async () => {
@@ -91,16 +130,18 @@ const createDummyTransaction = (
         productTransaction: Prisma.ProductTransactionCreateManyInput[] 
         promoTransaction: Prisma.PromoTransactionCreateManyInput[] 
     }> = []
+    // const transactions: Prisma.TransactionUncheckedCreateInput[] = []
 
     const customer = dummyUsers.find((u) => u.role === "CUSTOMER") as Prisma.UserCreateManyInput
 
     const num_of_transaction = faker.number.int({ min: 5, max: 10 })
     for(let i = 0; i < num_of_transaction; i++) {
         const transaction: 
+            // Prisma.TransactionUncheckedCreateInput
             Prisma.TransactionCreateManyInput & { 
             productTransaction: Prisma.ProductTransactionCreateManyInput[] 
-            promoTransaction: Prisma.PromoTransactionCreateManyInput[] 
-        } = {
+            promoTransaction: Prisma.PromoTransactionCreateManyInput[] } 
+        = {
             id: uuid(),
             customerId: customer.id as string,
             price_before_discount: 0,
@@ -114,14 +155,14 @@ const createDummyTransaction = (
         const transactionProducts: Prisma.ProductTransactionCreateManyInput[] = []
 
         for(let j = 0; j < num_of_product; j++) {
-            const selected_product = dummyProducts[i]
+            const selected_product = dummyProducts[j]
             const randomQty = faker.number.int({ min: 1, max: 5 })
             const transactionProduct: Prisma.ProductTransactionCreateManyInput = {
                 id: uuid(),
                 transactionId: transaction.id as string,
                 productId: selected_product.id as string,
                 quantity: randomQty,
-                sub_total: Number(selected_product.price * randomQty)
+                sub_total: Math.floor(selected_product.price * randomQty)
             }
             transactionProducts.push(transactionProduct)
         }
@@ -134,9 +175,9 @@ const createDummyTransaction = (
         const price_discount = dummyPromos.find(v => v.affectOn === "PRICE") as Prisma.PromoCreateManyInput
         // check if price_before_discount meet the discount's minimum
         if(transaction.price_before_discount > price_discount.minimun) {
-            const discount = transaction.price_before_discount * price_discount.discount / 100
+            const discount = Math.floor(transaction.price_before_discount * price_discount.discount / 100)
             transaction.total_discount = discount
-            transaction.total_price = transaction.total_price - discount
+            transaction.total_price = Math.floor(transaction.total_price - discount)
 
             const discount_promo_transaction: Prisma.PromoTransactionCreateManyInput = { 
                 id: uuid(), 
@@ -150,9 +191,11 @@ const createDummyTransaction = (
         const free_shipping = dummyPromos.find(v => v.affectOn === "SHIPPING") as Prisma.PromoCreateManyInput
         // check if price_before_discount meet the discount's minimum
         if(transaction.total_price > free_shipping.minimun) {
-            const fs_discount = transaction.price_before_discount * free_shipping.discount / 100
+            const fs_discount = Math.floor(transaction.shipping_cost as number * free_shipping.discount / 100)
             // transaction.total_discount += fs_discount
-            transaction.total_price = transaction.total_price - fs_discount
+            transaction.shipping_cost = Math.floor(transaction.shipping_cost as number - fs_discount)
+
+            // transaction.total_price = Math.floor(transaction.total_price - fs_discount)
 
             const fs_promo_transaction: Prisma.PromoTransactionCreateManyInput = { 
                 id: uuid(), 
